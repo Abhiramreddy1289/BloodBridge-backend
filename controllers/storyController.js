@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Story = require('../models/Story');
 const BloodRequest = require('../models/BloodRequest');
-const { sendNotification, templates } = require('../utils/notifications');
+const { queueNotification, templates } = require('../utils/notifications');
 
 const getStories = asyncHandler(async (req, res) => {
   const stories = await Story.find({ isApproved: true }).sort({ createdAt: -1 });
@@ -37,7 +37,7 @@ const createStory = asyncHandler(async (req, res) => {
     quote,
   });
 
-  await sendNotification({
+  queueNotification({
     to: req.user.email,
     subject: 'BloodBridge story submitted',
     template: templates.storyEmail(req.user),

@@ -1,7 +1,18 @@
 const asyncHandler = require('express-async-handler');
 const BloodRequest = require('../models/BloodRequest');
 const User = require('../models/User');
-const { sendNotification, templates } = require('../utils/notifications');
+const { queueMany, queueNotification, templates } = require('../utils/notifications');
+
+const compatibleDonorGroups = {
+  'A+': ['A+', 'A-', 'O+', 'O-'],
+  'A-': ['A-', 'O-'],
+  'B+': ['B+', 'B-', 'O+', 'O-'],
+  'B-': ['B-', 'O-'],
+  'AB+': ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+  'AB-': ['A-', 'B-', 'AB-', 'O-'],
+  'O+': ['O+', 'O-'],
+  'O-': ['O-'],
+};
 
 const createRequest = asyncHandler(async (req, res) => {
   const {
@@ -40,25 +51,29 @@ const createRequest = asyncHandler(async (req, res) => {
 
   const matchingDonors = await User.find({
     role: 'donor',
-    bloodGroup,
+    bloodGroup: { $in: compatibleDonorGroups[bloodGroup] || [bloodGroup] },
+    availabilityStatus: true,
     isBlocked: false,
   }).select('-passwordHash');
 
-  if (matchingDonors.length) {
-    matchingDonors.forEach((donor) => {
-      sendNotification({
-        to: donor.email,
-        subject: `Emergency ${bloodGroup} blood request`,
-        template: templates.requestAlertEmail({ donor, request }),
-      });
-    });
-  }
+  queueMany(matchingDonors, (donor) => ({
+    to: donor.email,
+    subject: `Emergency ${bloodGroup} blood request`,
+    template: templates.requestAlertEmail({ donor, request }),
+  }));
 
-  await sendNotification({
+  queueNotification({
     to: req.user.email,
     subject: 'BloodBridge request created',
     template: templates.requestStatusEmail({ user: req.user, request, status: 'created' }),
   });
+
+  const admins = await User.find({ role: 'admin', isBlocked: false }).select('name email role isBlocked');
+  queueMany(admins, (adminUser) => ({
+    to: adminUser.email,
+    subject: `New BloodBridge SOS: ${bloodGroup}`,
+    template: templates.requestStatusEmail({ user: adminUser, request, status: 'created' }),
+  }));
 
   res.status(201).json({ request, matchingDonorsCount: matchingDonors.length });
 });
@@ -151,18 +166,18 @@ const acceptRequest = asyncHandler(async (req, res) => {
   await donor.save();
 
   const requester = await User.findById(request.requesterId);
-  await Promise.allSettled([
-    requester && sendNotification({
+  if (requester) {
+    queueNotification({
       to: requester.email,
       subject: 'A donor accepted your BloodBridge request',
       template: templates.requestStatusEmail({ user: requester, request, status: 'on_the_way' }),
-    }),
-    sendNotification({
-      to: donor.email,
-      subject: 'You accepted a BloodBridge request',
-      template: templates.requestStatusEmail({ user: donor, request, status: 'on_the_way' }),
-    }),
-  ]);
+    });
+  }
+  queueNotification({
+    to: donor.email,
+    subject: 'You accepted a BloodBridge request',
+    template: templates.requestStatusEmail({ user: donor, request, status: 'on_the_way' }),
+  });
 
   res.json(request);
 });
@@ -234,18 +249,27 @@ const updateRequestStatus = asyncHandler(async (req, res) => {
     request.donorId ? User.findById(request.donorId) : null,
   ]);
 
-  await Promise.allSettled([
-    requester && sendNotification({
+  if (requester) {
+    queueNotification({
       to: requester.email,
       subject: `BloodBridge request ${request.status}`,
       template: templates.requestStatusEmail({ user: requester, request, status: request.status }),
-    }),
-    donor && sendNotification({
+    });
+  }
+  if (donor) {
+    queueNotification({
       to: donor.email,
       subject: `BloodBridge request ${request.status}`,
       template: templates.requestStatusEmail({ user: donor, request, status: request.status }),
-    }),
-  ]);
+    });
+  }
+
+  const admins = await User.find({ role: 'admin', isBlocked: false }).select('name email role isBlocked');
+  queueMany(admins, (adminUser) => ({
+    to: adminUser.email,
+    subject: `BloodBridge request ${request.status}`,
+    template: templates.requestStatusEmail({ user: adminUser, request, status: request.status }),
+  }));
 
   res.json(request);
 });

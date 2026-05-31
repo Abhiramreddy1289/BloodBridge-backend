@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Camp = require('../models/Camp');
 const User = require('../models/User');
-const { notifyMany, sendNotification, templates } = require('../utils/notifications');
+const { queueMany, queueNotification, templates } = require('../utils/notifications');
 
 const getCamps = asyncHandler(async (req, res) => {
   const query = req.user && req.user.role === 'admin' ? {} : { isApproved: true };
@@ -27,11 +27,20 @@ const createCamp = asyncHandler(async (req, res) => {
     isApproved: req.user.role === 'admin' // Admins auto-approve
   });
 
-  await sendNotification({
+  queueNotification({
     to: req.user.email,
     subject: camp.isApproved ? 'BloodBridge camp published' : 'BloodBridge camp submitted for approval',
     template: templates.campEmail(camp, camp.isApproved ? 'new' : 'submitted'),
   });
+
+  if (!camp.isApproved) {
+    const admins = await User.find({ role: 'admin', isBlocked: false }).select('name email isBlocked');
+    queueMany(admins, (adminUser) => ({
+      to: adminUser.email,
+      subject: `Camp approval needed: ${camp.title}`,
+      template: templates.campEmail(camp, 'submitted'),
+    }));
+  }
 
   if (camp.isApproved) {
     await notifyCampAnnouncement(camp);
@@ -64,7 +73,7 @@ const approveCamp = asyncHandler(async (req, res) => {
 
 const notifyCampAnnouncement = async (camp) => {
   const users = await User.find({ isBlocked: false }).select('name email isBlocked');
-  await notifyMany(users, (user) => ({
+  queueMany(users, (user) => ({
     to: user.email,
     subject: `New BloodBridge camp: ${camp.title}`,
     template: templates.campEmail(camp, 'new'),

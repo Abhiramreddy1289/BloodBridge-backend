@@ -4,7 +4,7 @@ const generateToken = require('../utils/generateToken');
 // const sendSMS = require('../utils/sendSMS'); // SMS removed
 const { isValidEmail, isValidPhone, isValidName } = require('../utils/validation');
 const { uploadImage } = require('../utils/cloudinary');
-const { sendNotification, templates } = require('../utils/notifications');
+const { queueNotification, templates } = require('../utils/notifications');
 
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, bloodGroup, phone, age, gender, city, state, coordinates } = req.body;
@@ -56,18 +56,11 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    // Send Welcome Email
-    try {
-  await sendNotification({
-    to: user.email,
-    subject: 'Welcome to BloodBridge',
-    template: templates.welcomeEmail(user),
-  });
-
-  console.log('Welcome email sent');
-} catch (err) {
-  console.error('Failed to send welcome email:', err.message);
-}
+    queueNotification({
+      to: user.email,
+      subject: 'Welcome to BloodBridge',
+      template: templates.welcomeEmail(user),
+    });
 
 //     // Send Welcome SMS (Placeholder)
 //     // sendSMS({
@@ -155,17 +148,11 @@ const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
-    // Send Login Notification Email
-    try {
-      await sendNotification({
-        to: user.email,
-        subject: 'New Login to Your BloodBridge Account',
-        template: templates.loginEmail(user),
-      });
-      console.log('Login email sent');
-    } catch (err) {
-      console.error('Failed to send login email:', err.message);
-    }
+    queueNotification({
+      to: user.email,
+      subject: 'New Login to Your BloodBridge Account',
+      template: templates.loginEmail(user),
+    });
 
     res.json({
       _id: user._id,
@@ -226,7 +213,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
   user.avatar = upload.url;
   await user.save();
 
-  await sendNotification({
+  queueNotification({
     to: user.email,
     subject: 'BloodBridge profile photo updated',
     template: templates.profileUpdateEmail(user),

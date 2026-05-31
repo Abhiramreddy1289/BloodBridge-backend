@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
-const { sendNotification, templates } = require('../utils/notifications');
+const { queueNotification, templates } = require('../utils/notifications');
 
 const getDonors = asyncHandler(async (req, res) => {
   const { bloodGroup, city, availability = 'true' } = req.query;
@@ -94,7 +94,7 @@ const updateAvailability = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  await sendNotification({
+  queueNotification({
     to: user.email,
     subject: 'BloodBridge availability updated',
     template: templates.profileUpdateEmail(user),
@@ -132,7 +132,7 @@ const updateInventory = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  await sendNotification({
+  queueNotification({
     to: user.email,
     subject: 'BloodBridge inventory updated',
     template: templates.inventoryUpdateEmail(user),

@@ -130,7 +130,7 @@ const campEmail = (camp, type = 'new') => {
   let statusExplanation = 'A new community donation camp has been registered on BloodBridge. Join us to make a direct life-saving contribution!';
   
   if (isToday) {
-    title = '🚨 Blood Donation Camp Happening Today!';
+    title = 'Blood Donation Camp Happening Today!';
     preheader = `The drive "${camp.title}" is officially live today.`;
     statusExplanation = 'This camp is scheduled for today! Please visit the venue and encourage friends and family to join. Every single donation counts.';
   } else if (isSubmitted) {
@@ -166,7 +166,7 @@ const campEmail = (camp, type = 'new') => {
 };
 
 const requestAlertEmail = ({ donor, request }) => renderEmail({
-  title: '🚨 CRITICAL SOS: Emergency Donor Needed!',
+  title: 'CRITICAL SOS: Emergency Donor Needed!',
   preheader: `Hi ${donor.name}, a patient urgently needs your matching ${request.bloodGroup} blood type.`,
   sections: [
     {
@@ -219,7 +219,7 @@ const requestStatusEmail = ({ user, request, status }) => {
         'Please travel safely. The patient and hospital staff have been notified and are eagerly waiting for your arrival. Thank you for your noble gesture!'
       ];
     } else {
-      title = '🚨 Life-Saving Donor On The Way!';
+      title = 'Life-Saving Donor On The Way!';
       preheader = 'A matching donor has accepted your emergency request!';
       headerText = 'Donor Route In Progress';
       descriptionLines = [
@@ -253,7 +253,7 @@ const requestStatusEmail = ({ user, request, status }) => {
   } else if (status === 'completed') {
     const isDonorEmail = user.role === 'donor';
     if (isDonorEmail) {
-      title = 'Heroism Acknowledged: Life Saved! 🎉';
+      title = 'Heroism Acknowledged: Life Saved!';
       preheader = `Thank you for donating ${request.bloodGroup} blood.`;
       headerText = 'Direct Impact Registered';
       descriptionLines = [
@@ -341,7 +341,7 @@ const inventoryUpdateEmail = (user) => renderEmail({
   sections: [
     {
       heading: 'Synced Inventory Reserves',
-      lines: Object.entries(user.inventory || {}).map(([group, units]) => `• ${group} Group: ${units} units available`),
+      lines: Object.entries(user.inventory || {}).map(([group, units]) => `- ${group} Group: ${units} units available`),
     },
     {
       heading: 'Why keeping stock current is crucial',
@@ -354,7 +354,7 @@ const inventoryUpdateEmail = (user) => renderEmail({
 });
 
 const storyEmail = (user) => renderEmail({
-  title: 'Your Story is Shared with the World! 🌟',
+  title: 'Your Story is Shared with the World!',
   preheader: `Thank you ${user.name}, your life-saving testimonial was submitted successfully.`,
   sections: [
     {
