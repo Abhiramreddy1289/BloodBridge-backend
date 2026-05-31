@@ -26,6 +26,9 @@ const getTransporter = () => {
 
   transporter = nodemailer.createTransport({
     ...config,
+    connectionTimeout: Number(process.env.EMAIL_CONNECTION_TIMEOUT_MS || 5000),
+    greetingTimeout: Number(process.env.EMAIL_GREETING_TIMEOUT_MS || 5000),
+    socketTimeout: Number(process.env.EMAIL_SOCKET_TIMEOUT_MS || 5000),
     tls: {
       rejectUnauthorized: process.env.EMAIL_REJECT_UNAUTHORIZED === 'true',
     },

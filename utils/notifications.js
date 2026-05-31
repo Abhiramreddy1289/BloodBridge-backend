@@ -1,15 +1,29 @@
 const sendEmail = require('./sendEmail');
 const templates = require('./emailTemplates');
 
+const NOTIFICATION_TIMEOUT_MS = Number(process.env.NOTIFICATION_TIMEOUT_MS || 3000);
+
+const withTimeout = (promise, timeoutMs) => (
+  Promise.race([
+    promise,
+    new Promise((resolve) => {
+      setTimeout(() => {
+        console.log(`Notification email timed out after ${timeoutMs}ms`);
+        resolve(null);
+      }, timeoutMs);
+    }),
+  ])
+);
+
 const sendNotification = async ({ to, subject, template }) => {
   if (!to || !template) return null;
 
-  return sendEmail({
+  return withTimeout(sendEmail({
     to,
     subject,
     text: template.text,
     html: template.html,
-  }).catch((error) => {
+  }), NOTIFICATION_TIMEOUT_MS).catch((error) => {
     console.log('Notification email failed:', error.message);
     return null;
   });
