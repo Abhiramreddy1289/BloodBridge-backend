@@ -1,0 +1,95 @@
+### Register a new user
+POST http://127.0.0.1:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Akhila Donor",
+  "email": "akhila@example.com",
+  "password": "Password123!",
+  "bloodGroup": "A+",
+  "phone": "9876543210",
+  "age": 28,
+  "gender": "female",
+  "city": "Hyderabad",
+  "state": "Telangana"
+}
+
+### Login user
+POST http://127.0.0.1:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "akhila@example.com",
+  "password": "Password123!"
+}
+
+### Get current authenticated user
+GET http://127.0.0.1:3000/api/auth/me
+Authorization: Bearer {{authToken}}
+
+### Get all donors
+GET http://127.0.0.1:3000/api/donors
+
+### Get donor by id
+GET http://127.0.0.1:3000/api/donors/{{donorId}}
+
+### Update donor availability
+PUT http://127.0.0.1:3000/api/donors/availability
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "availabilityStatus": true,
+  "lastDonationDate": "2024-05-01"
+}
+
+### Search donors by blood group and city
+GET http://127.0.0.1:3000/api/search?bloodGroup=A+&city=Hyderabad
+
+### Create a blood request
+POST http://127.0.0.1:3000/api/requests
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "patientName": "Sri Patient",
+  "bloodGroup": "A+",
+  "unitsRequired": 2,
+  "hospitalName": "Apollo Hospital",
+  "hospitalAddress": "Road Number 1, Hyderabad",
+  "city": "Hyderabad",
+  "urgencyLevel": "critical",
+  "contactNumber": "9123456780"
+}
+
+### Get my requests
+GET http://127.0.0.1:3000/api/requests
+Authorization: Bearer {{authToken}}
+
+### Get a single request
+GET http://127.0.0.1:3000/api/requests/{{requestId}}
+Authorization: Bearer {{authToken}}
+
+### Accept a blood request
+PUT http://127.0.0.1:3000/api/requests/{{requestId}}/accept
+Authorization: Bearer {{authToken}}
+
+### Complete a blood request
+PUT http://127.0.0.1:3000/api/requests/{{requestId}}/complete
+Authorization: Bearer {{authToken}}
+
+### Admin: get all users
+GET http://127.0.0.1:3000/api/admin/users
+Authorization: Bearer {{adminToken}}
+
+### Admin: get all requests
+GET http://127.0.0.1:3000/api/admin/requests
+Authorization: Bearer {{adminToken}}
+
+### Admin: delete fake request
+DELETE http://127.0.0.1:3000/api/admin/fake-request/{{requestId}}
+Authorization: Bearer {{adminToken}}
+
+### Admin: get analytics
+GET http://127.0.0.1:3000/api/admin/analytics
+Authorization: Bearer {{adminToken}}

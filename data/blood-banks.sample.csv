@@ -1,0 +1,3 @@
+name,state,district,address,pincode,phone,email,website,latitude,longitude,A+,A-,B+,B-,AB+,AB-,O+,O-
+Sample Delhi Blood Centre,Delhi,New Delhi,Connaught Place,110001,01100000000,delhi@example.com,https://example.com,28.6139,77.2090,15,8,20,6,12,4,31,5
+Sample Mumbai Blood Bank,Maharashtra,Mumbai,Fort Mumbai,400001,02200000000,mumbai@example.com,https://example.com,19.0760,72.8777,18,5,24,7,11,3,29,6

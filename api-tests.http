@@ -1,0 +1,86 @@
+@backend = http://localhost:5000
+
+# After login, paste the token value below
+@authToken = 
+
+# After creating a request, paste the returned request _id below
+@requestId = 
+
+# After getting a donor from the donor list, paste the donor _id below
+@donorId = 
+
+### Register User
+POST {{backend}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Akhila Donor",
+  "email": "akhila@example.com",
+  "password": "Password123!",
+  "bloodGroup": "A+",
+  "phone": "9876543210",
+  "age": 28,
+  "gender": "female",
+  "city": "Hyderabad",
+  "state": "Telangana"
+}
+
+### Login User
+POST {{backend}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "akhila@example.com",
+  "password": "Password123!"
+}
+
+### Get Current User
+GET {{backend}}/api/auth/me
+Authorization: Bearer {{authToken}}
+
+### Update Donor Availability
+PUT {{backend}}/api/donors/availability
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "availabilityStatus": true,
+  "lastDonationDate": "2024-05-01"
+}
+
+### Search Donors (Public)
+GET {{backend}}/api/search?bloodGroup=A+&city=Hyderabad
+
+### Create Emergency Blood Request
+POST {{backend}}/api/requests
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "patientName": "Sri Patient",
+  "bloodGroup": "A+",
+  "unitsRequired": 2,
+  "hospitalName": "Apollo Hospital",
+  "hospitalAddress": "Road Number 1, Hyderabad",
+  "city": "Hyderabad",
+  "urgencyLevel": "critical",
+  "contactNumber": "9123456780"
+}
+
+### Get My Requests
+GET {{backend}}/api/requests
+Authorization: Bearer {{authToken}}
+
+### Get Donors List
+GET {{backend}}/api/donors?bloodGroup=A+&city=Hyderabad
+
+### Get Specific Donor
+GET {{backend}}/api/donors/{{donorId}}
+
+### Accept Blood Request
+PUT {{backend}}/api/requests/{{requestId}}/accept
+Authorization: Bearer {{authToken}}
+
+### Complete Blood Request
+PUT {{backend}}/api/requests/{{requestId}}/complete
+Authorization: Bearer {{authToken}}
